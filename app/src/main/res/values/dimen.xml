@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_top_bottom_row">2dp</dimen>
+    <dimen name="margin_left_right_row">6dp</dimen>
+    <dimen name="radius_card_view_row">4dp</dimen>
+    <dimen name="margin_layout">2dp</dimen>
+</resources>
