@@ -1,0 +1,355 @@
+package gv.myapplication;
+
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
+import java.util.List;
+
+import gv.myapplication.data.DataAdapter;
+import gv.myapplication.data.Model;
+import gv.myapplication.data.SqlDb;
+
+/**
+ * Created by hi on 6/29/2017.
+ */
+
+public class SecondActivity  extends AppCompatActivity{
+
+    private RecyclerView recyclerView;
+    private SqlDb sqlDb;
+    private LinearLayoutManager layoutManager;
+    private List<Model> models;
+    private DataAdapter dataAdapter;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_second);
+        recyclerView=(RecyclerView)findViewById(R.id.rcv);
+        layoutManager=new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        sqlDb=new SqlDb(this);
+        models=sqlDb.listData();
+        if(models.size()>0){
+            dataAdapter=new DataAdapter(this,models);
+            recyclerView.setAdapter(dataAdapter);
+        }
+
+
+    }
+}
+
+
+
+
+
+package gv.myapplication.data;
+
+/**
+ * Created by hi on 6/29/2017.
+ */
+
+public class Model {
+    public Model( String name, String desc) {
+        this.name=name;
+        this.desc=desc;
+    }
+    public Model(int id, String name, String desc) {
+        this.id=id;
+        this.name=name;
+        this.desc=desc;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    private int id;
+    private String name;
+    private String desc;
+}
+
+
+package gv.myapplication.data;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by hi on 6/29/2017.
+ */
+
+public class SqlDb extends SQLiteOpenHelper{
+
+    // Table Name
+    private static final String TABLE_NAME = "data";
+
+    // Table columns
+    private static final String COLUMN_ID = "_id";
+    private static final String COLUMN_SUBJECT = "subject";
+    private static final String COLUMN_DESC = "description";
+
+    // Database Information
+   private static final String DB_NAME = "user.db";
+
+    // database version
+   private static final int DB_VERSION = 1;
+
+    // Creating table query
+    private static final String CREATE_TABLE = "create table " + TABLE_NAME + "(" + COLUMN_ID
+            + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_SUBJECT + " TEXT NOT NULL, " + COLUMN_DESC + " TEXT);";
+
+    public SqlDb(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL(CREATE_TABLE);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+
+
+    public List<Model> listData(){
+        String sql = "select * from " + TABLE_NAME;
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Model> storeData = new ArrayList<>();
+        Cursor cursor = db.rawQuery(sql, null);
+        if(cursor.moveToFirst()){
+            do{
+                int id = Integer.parseInt(cursor.getString(0));
+                String name = cursor.getString(1);
+                //int desc = Integer.parseInt(cursor.getString(2));
+                String desc = cursor.getString(2);
+
+                storeData.add(new Model(id, name, desc));
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+        return storeData;
+    }
+    public void addData(Model model){
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SUBJECT, model.getName());
+        values.put(COLUMN_DESC, model.getDesc());
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insert(TABLE_NAME, null, values);
+    }
+}
+
+
+
+package gv.myapplication.data;
+
+import android.content.Context;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.util.List;
+
+import gv.myapplication.R;
+
+/**
+ * Created by hi on 6/29/2017.
+ */
+
+public class DataAdapter extends RecyclerView.Adapter<DataAdapter.VHolder> {
+
+    private Context context;
+    private List<Model> models;
+    private SqlDb mDatabase;
+
+    public DataAdapter(Context context,List<Model> modelList){
+        this.context=context;
+        this.models=modelList;
+        mDatabase=new SqlDb(context);
+    }
+
+
+
+    @Override
+    public VHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_second_row, parent, false);
+        return new VHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(VHolder holder, int position) {
+
+        final Model singledata=models.get(position);
+        holder.name.setText(singledata.getName());
+        holder.desc.setText(singledata.getDesc());
+    }
+
+    @Override
+    public int getItemCount() {
+        return models.size();
+    }
+
+    public class VHolder extends RecyclerView.ViewHolder {
+        public TextView name;
+        public TextView desc;
+        public VHolder(View itemView) {
+            super(itemView);
+            name = (TextView)itemView.findViewById(R.id.name);
+            desc = (TextView) itemView.findViewById(R.id.desc);
+        }
+    }
+}
+
+
+package gv.myapplication;
+
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import gv.myapplication.data.Model;
+import gv.myapplication.data.SqlDb;
+
+public class MainActivity extends AppCompatActivity {
+
+    private SqlDb sqlDb;
+    private EditText name,desc;
+    public Button btn_submit;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        name=(EditText)findViewById(R.id.enter_name);
+        desc=(EditText)findViewById(R.id.enter_desc);
+        btn_submit=(Button)findViewById(R.id.btn_submit);
+        sqlDb=new SqlDb(this);
+        btn_submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addData();
+            }
+        });
+        
+
+    }
+
+    private void addData() {
+        String n1=name.getText().toString();
+        String n2=desc.getText().toString();
+        Model model=new Model(n1,n2);
+        sqlDb.addData(model);
+        Intent i=new Intent(this,SecondActivity.class);
+        startActivity(i);
+    }
+
+}
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <EditText
+        android:id="@+id/enter_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_name"
+        android:maxLines="1"
+       />
+    <EditText
+        android:id="@+id/enter_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_quantity"
+        />
+    <Button
+        android:id="@+id/btn_submit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"/>
+</LinearLayout>
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rcv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="1dp"
+    card_view:cardElevation="2dp"
+    card_view:cardUseCompatPadding="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/desc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:contentDescription="@string/app_name"/>
+
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+
+
+
+

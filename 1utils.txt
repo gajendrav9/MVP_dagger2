@@ -1,0 +1,31 @@
+package gv.githubjson1.utils;
+
+import android.content.Context;
+import android.net.ConnectivityManager;
+
+/**
+ * Created by hi on 9/13/2016.
+ */
+public class InternetConnection {
+    /**
+     * CHECK WHETHER INTERNET CONNECTION IS AVAILABLE OR NOT
+     */
+    public static boolean checkConnection(Context context) {
+        return  ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo() != null;
+    }
+}
+
+---------------------------------------
+package gv.githubjson1.utils;
+
+/**
+ * Created by hi on 9/13/2016.
+ */
+public class Keys {
+    public static final String KEY_CONTACTS = "result";
+    public static final String KEY_NAME = "name";
+    public static final String KEY_PHONE = "des";
+   // public static final String KEY_MOBILE = "add";
+    public static final String KEY_PROFILE_PIC = "image";
+    public static final String KEY_EMAIL = "add";
+}
